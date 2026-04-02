@@ -1,0 +1,28 @@
+{
+  "name": "node",
+  "version": "0.0.1",
+  "description": "node basic and npm understanding",
+  "homepage": "https://github.com/viral-89/NodeJS#readme",
+  "bugs": {
+    "url": "https://github.com/viral-89/NodeJS/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/viral-89/NodeJS.git"
+  },
+  "license": "ISC",
+  "author": "viral",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "dependencies": {
+    "chalk": "^5.6.2"
+  },
+  "devDependencies": {
+    "axios": "^1.14.0"
+  }
+}

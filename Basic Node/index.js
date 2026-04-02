@@ -1,4 +1,4 @@
-const fs = require("node:fs");
+
 
 // fs = file system
 
@@ -97,7 +97,12 @@ const fs = require("node:fs");
 //   console.log("delete folder");
 // });
 
-fs.rm("name.txt", (e) => {
-  if (e) throw error;
-  console.log("delete file");
-});
+// fs.rm("name.txt", (e) => {
+//   if (e) throw error;
+//   console.log("delete file");
+// });
+
+import chalk from "chalk";
+
+console.log(chalk.blue("Write with chalk"));
+console.log(chalk.bgYellow.redBright.bold("Write with chalk"));
