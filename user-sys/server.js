@@ -4,6 +4,12 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const postModel = require("./models/post.model");
 const userModel = require("./models/user.model");
+const crypto = require("crypto");
+const path = require("path");
+const upload = require("./config/multer");
+
+// image folder --> image --> aa.jpg(laptop)
+// my pic folder --> image --> aa.jpg(mobile)
 
 const app = express();
 
@@ -11,6 +17,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
+
+app.use(express.static(path.join(__dirname, "public")));
 
 app.set("view engine", "ejs");
 
@@ -28,6 +36,7 @@ app.get("/profile", auth, async (req, res) => {
     .findOne({ email: req.user.email })
     .populate("posts");
   console.log(user);
+
   res.render("profile", { user });
 });
 
@@ -85,16 +94,19 @@ app.get("/logout", (req, res) => {
   res.redirect("/");
 });
 
-// creeate post
-app.post("/post", auth, async (req, res) => {
+// create post
+app.post("/post", auth, upload.single("imgurl"), async (req, res) => {
   let user = await userModel.findOne({ email: req.user.email });
 
   let { title, description, imgurl } = req.body;
+
+  console.log(req.file);
+
   let createdPost = await postModel.create({
     userId: user._id,
     title,
     description,
-    imgurl,
+    imgurl: req.file.filename,
   });
 
   // add (push) posts into user data
