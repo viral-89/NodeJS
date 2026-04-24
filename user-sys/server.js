@@ -44,6 +44,12 @@ app.get("/post", auth, (req, res) => {
   res.render("post");
 });
 
+app.get("/editprofile", auth, async (req, res) => {
+  let user = await userModel.findOne({ email: req.user.email });
+
+  res.render("editprofile", { user });
+});
+
 // backend + database logic
 // signup user ==> create a new user
 app.post("/create", (req, res) => {
@@ -111,6 +117,32 @@ app.post("/post", auth, upload.single("imgurl"), async (req, res) => {
 
   // add (push) posts into user data
   user.posts.push(createdPost);
+  await user.save();
+
+  res.redirect("/profile");
+});
+
+// edit profile
+app.post("/edit", auth, async (req, res) => {
+  let { fullname, username, email, phone, image } = req.body;
+
+  await userModel.findOneAndUpdate(
+    { email: req.user.email },
+    { fullname, username, email, phone, image },
+    { new: true },
+  );
+
+  res.redirect("/profile");
+});
+
+app.get("/delete/:id", auth, async (req, res) => {
+  let user = await userModel.findOne({ email: req.user.email });
+
+  await postModel.findOneAndDelete({ _id: req.params.id });
+
+  let postNumber = user.posts.indexOf(req.params.id);
+
+  user.post.splice(postNumber, 1);
   await user.save();
 
   res.redirect("/profile");

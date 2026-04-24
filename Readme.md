@@ -109,3 +109,9 @@ store data on the client side. Sessions are typically used to store user-specifi
 
 // cookie parse = npm i cookie-parser
 // cookie-parser is a middleware for Express.js that allows you to parse cookies in incoming HTTP requests. It provides a convenient way to access and manipulate cookies in your Express.js applications. With cookie-parser, you can easily read and write cookies, set cookie options such as expiration and path, and handle cookie-related functionality in your routes and middleware. It simplifies the process of working with cookies in Express.js and helps you manage user sessions and preferences effectively.
+
+
+
+
+
+
