@@ -1,153 +1,110 @@
 const userService = require("../services/user.service");
-const { validationResult } = require("express-validator");
-const userModel = require("../models/user.model");
+const { validationResult, check } = require("express-validator");
+const userModel = require("../models/user.model")
 
 module.exports.registerUser = async (req, res) => {
-  const error = validationResult(req);
-  if (!error.isEmpty()) {
-    return res.status(400).json({ error: error.array() });
-  }
-  const { username, email, password, role } = req.body;
+    const error = validationResult(req);
 
-  // check user if already exist
-  let isExist = await userModel.findOne({ email: email });
+    if (!error.isEmpty()) {
+        return res.status(400).json({ error: error.array() })
+    }
 
-  if (isExist) {
-    return res.status(400).json({ message: "User is already registered" });
-  }
+    const { username, email, password, role } = req.body;
 
-  const hashPassword = await userModel.hashPassword(password);
-  const user = await userService.createUser({
-    username,
-    email,
-    password: hashPassword,
-    role,
-  });
+    // check user is already registred or not
+    let isExist = await userModel.findOne({ email: email });
 
-  let token = await user.generateAuthToken();
-  res.status(200).json({ token, user });
-};
+    if (isExist) {
+        return res.status(400).json({ error: [{ msg: "User is Already Register" }] })
+    }
+
+    const hashPassword = await userModel.hashPassword(password);
+
+    const user = await userService.createUser(
+        {
+            username,
+            email,
+            password: hashPassword,
+            role
+        })
+
+    let token = await user.generateAuthToken();
+
+    res.status(200).json({ token, user });
+}
 
 module.exports.loginUser = async (req, res) => {
-  let error = validationResult(req);
+    let error = validationResult(req);
 
-  if (!error.isEmpty()) {
-    return res.status(400).json({ error: error.array() });
-  }
+    if (!error.isEmpty()) {
+        return res.status(400).json({ error: error.array() });
+    }
 
-  const { email, password } = req.body;
-  let checkUser = await userModel.findOne({ email: email }).select("+password");
+    const { email, password } = req.body;
 
-  if (!checkUser) {
-    return res.status(401).json({ message: "User Is Not Exists!!" });
-  }
+    let checkUser = await userModel.findOne({ email: email }).select('+password');
 
-  const isMatch = await checkUser.comparePassword(password);
+    if (!checkUser) {
+        return res.status(401).json({ error: [{ msg: "Email is invalid" }] })
+    }
 
-  if (!isMatch) {
-    return res.status(400).json({ message: "Password is Invalid!!" });
-  }
+    const isMatch = await checkUser.comparePassword(password);
 
-  const token = checkUser.generateAuthToken();
-  res.cookie("token", token);
-  res.status(200).json({ token, checkUser });
-};
+    if (!isMatch) {
+        return res.status(400).json({ message: "Wrong Password" })
+    }
+
+    const token = await checkUser.generateAuthToken();
+    res.cookie("token", token);
+
+    res.status(200).json({ token, checkUser });
+}
 
 module.exports.profile = (req, res) => {
-  res.status(200).json({ user: req.user });
-};
-
-module.exports.updateUser = async (req, res) => {
-  // 1. Check for Validation Errors (from your route rules)
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  const { username, email, oldPassword, newPassword } = req.body;
-  const userId = req.user._id;
-
-  try {
-    // Fetch user and include password for comparison
-    const user = await userModel.findById(userId).select("+password");
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found!" });
-    }
-
-    // 2. Password Change Logic
-    if (newPassword && newPassword.trim() !== "") {
-      // Check if oldPassword was even provided in the request
-      if (!oldPassword) {
-        return res
-          .status(400)
-          .json({
-            message: "Please provide current password to set a new one.",
-          });
-      }
-
-      // Verify if the current password is correct
-      const isMatch = await user.comparePassword(oldPassword);
-      if (!isMatch) {
-        return res
-          .status(400)
-          .json({ message: "Current password is incorrect!" });
-      }
-
-      // Hash and update the new password
-      user.password = await userModel.hashPassword(newPassword);
-    }
-
-    // 3. Update Other Fields
-    user.username = username || user.username;
-    user.email = email || user.email;
-
-    // Save the document (Mongoose will trigger pre-save hooks if any)
-    await user.save();
-
-    // Remove password from the response object for security
-    const userResponse = user.toObject();
-    delete userResponse.password;
-
-    res.status(200).json({
-      message: "Profile updated successfully!",
-      user: userResponse,
-    });
-  } catch (err) {
-    console.error("Update Error:", err);
-    res.status(500).json({ message: "Server error during profile update" });
-  }
-};
+    res.status(200).json({ user: req.user });
+}
 
 module.exports.logout = (req, res) => {
-  res.clearCookie("token");
-  res.status(200).json({ message: "User Logout Successfully !!" });
-};
+    res.clearCookie("token")
+    res.status(200).json({ message: "User Logout Successfully !" });
+}
+
+module.exports.updateUser = async (req, res) => {
+    const userId = req.user.id;
+    console.log(userId);
+
+    const { username, email } = req.body;
+
+    const updateUser = await userService.updateUser({ userId, username, email });
+
+    res.status(200).json({ message: "User Data Updated Successfully !", updateUser })
+}
+
 
 // forget password --> send email for reset password
 module.exports.forgetPassword = async (req, res) => {
-  try {
-    const { email } = req.body;
+    try {
 
-    await userService.forgetPassword(email);
+        const { email } = req.body;
+        await userService.forgetPassword(email)
+        return res.status(200).json({ message: "Email Send Your Registered Mail Successfully. Check Your Mail" })
 
-    return res.status(200).json({
-      message: "Email Send you Register Email Sucessfully. Check Your Mail",
-    });
-  } catch (error) {
-    return res.status(400).json({ message: error.message });
-  }
-};
+    } catch (error) {
+        return res.status(400).json({ message: error.message })
+    }
+}
 
-// reset Passwod
+// reset Password
 module.exports.resetPassword = async (req, res) => {
-  try {
-    const token = req.params.token;
-    const { newPassword } = req.body;
-    await userService.resetPassword({ token, newPassword });
+    try {
+        const token = req.params.token;
+        const { newPassword } = req.body;
 
-    return res.status(200).json({ message: "Password Reset Successfully!" });
-  } catch (error) {
-    return res.status(400).json({ message: error.message });
-  }
-};
+        await userService.resetPassword({ token, newPassword })
+
+        return res.status(200).json({ message: "Password Reset Successfully !" })
+
+    } catch (error) {
+        return res.status(400).json({ message: error.message })
+    }
+}

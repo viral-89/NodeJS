@@ -1,100 +1,49 @@
-const productModel = require("../models/product.model");
+const productModel = require("../models/product.model")
 
 // create product
-module.exports.createProduct = async ({
-  name,
-  description,
-  stock,
-  price,
-  discount,
-  isNewproduct,
-  sku,
-  images,
-  brand,
-  category,
-}) => {
-  if (
-    !name ||
-    !description ||
-    !stock ||
-    !price ||
-    !sku ||
-    !images ||
-    !brand ||
-    !category
-  ) {
-    throw new Error("All Field Are Required !");
-  }
+module.exports.createProduct = async ({ name, description, stock, price, discount, isNewproduct, sku, images, brand, category }) => {
 
-  let product = await productModel.create({
-    name,
-    description,
-    stock,
-    price,
-    discount,
-    isNewproduct,
-    sku,
-    images,
-    brand,
-    category,
-  });
+    if (!name || !description || !stock || !price || !sku || !images || !brand || !category) {
+        throw new Error("All Field Are Required !")
+    }
 
-  return product;
-};
+    let product = await productModel.create({
+        name, description, stock, price, discount, isNewproduct, sku, images, brand, category
+    })
+
+    return product;
+}
 
 // get single product
 module.exports.singleProduct = async (id) => {
-  const product = await productModel.findOne({ _id: id });
+    const product = await productModel.findOne({ _id: id })
 
-  return product;
-};
+    return product
+}
 
 // all product
 module.exports.AllProduct = async () => {
-  // const allProduct = await productModel.find();
-  // return allProduct; // tradition way
-  return await productModel.find(); // in one line
-};
+    // const allProduct = await productModel.find();
+    // return allProduct; // tradition way
+    return await productModel.find(); // in one line
+}
 
 // update product
-module.exports.updateProduct = async (
-  productId,
-  name,
-  description,
-  stock,
-  price,
-  discount,
-  isNewproduct,
-  sku,
-  images,
-  brand,
-  category,
-) => {
-  const updatedProduct = await productModel.findOneAndUpdate(
-    { _id: productId },
-    {
-      name,
-      description,
-      stock,
-      price,
-      discount,
-      isNewproduct,
-      sku,
-      images,
-      brand,
-      category,
-    },
-    { new: true },
-  );
+module.exports.updateProduct = async ({ productId, name, description, stock, price, discount, isNewproduct, sku, images, brand, category }) => {
+    const updatedProduct = await productModel.findOneAndUpdate(
+        { _id: productId },
+        { name, description, stock, price, discount, isNewproduct, sku, images, brand, category },
+        { new: true }
+    )
 
-  if (!updatedProduct) {
-    throw new Error("Product Not Found !");
-  }
+    if (!updatedProduct) {
+        throw new Error("Product Not Found !");
+    }
 
-  return updatedProduct;
-};
+    return updatedProduct;
+}
 
 // delete product
 module.exports.deleteProduct = async (id) => {
-  return await productModel;
-};
+    return await productModel.findOneAndDelete({ _id: id })
+}

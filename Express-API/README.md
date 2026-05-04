@@ -48,7 +48,7 @@ Response ←──────────────────────�
 ## APIs Creation:
 # User:
 - forget password
-- change password
+- reset password
 
 
 - add cart
